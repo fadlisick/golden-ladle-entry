@@ -3,6 +3,7 @@
 // mostly through these, so every ticket state must read at a glance.
 
 import { dishById, finishedComponent } from './recipes.js';
+import { comboMultiplier, comboNextAt } from './kitchen.js';
 import { drawIngredientIcon } from './render.js';
 
 const CARD_W = 296;
@@ -20,6 +21,22 @@ function patienceColor(fraction) {
   if (fraction > 0.5) return '#58b368';
   if (fraction > 0.25) return '#f2c14e';
   return '#e2543e';
+}
+
+/** A small flame for the combo meter: orange teardrop, yellow heart. */
+function drawFlame(ctx, x, y, size) {
+  ctx.fillStyle = '#ff7a2f';
+  ctx.beginPath();
+  ctx.moveTo(x, y - size);
+  ctx.bezierCurveTo(x + size * 0.9, y - size * 0.2, x + size * 0.7, y + size * 0.8, x, y + size * 0.8);
+  ctx.bezierCurveTo(x - size * 0.7, y + size * 0.8, x - size * 0.9, y - size * 0.2, x, y - size);
+  ctx.fill();
+  ctx.fillStyle = '#ffd76a';
+  ctx.beginPath();
+  ctx.moveTo(x, y - size * 0.3);
+  ctx.bezierCurveTo(x + size * 0.5, y + size * 0.1, x + size * 0.4, y + size * 0.7, x, y + size * 0.7);
+  ctx.bezierCurveTo(x - size * 0.4, y + size * 0.7, x - size * 0.5, y + size * 0.1, x, y - size * 0.3);
+  ctx.fill();
 }
 
 /** Component keys the chef already has finished, on a station or in hand. */
@@ -97,21 +114,48 @@ export function drawTopBar(ctx, world) {
   ctx.fillStyle = golden ? '#f2c14e' : rush ? '#ff9a5c' : lowTime ? '#e2543e' : '#58b368';
   ctx.fillRect(0, 88, 1280 * dayFraction, 6);
 
-  // Score, combo and hearts, right.
+  // Score, combo streak meter and hearts, right.
   ctx.textAlign = 'right';
   ctx.fillStyle = '#f5ead2';
   ctx.font = 'bold 26px system-ui, sans-serif';
   ctx.fillText(`SCORE ${world.score.toLocaleString('en-US')}`, 1256, 34);
   if (world.combo >= 2) {
-    ctx.fillStyle = '#f2c14e';
-    ctx.fillRect(1064, 48, 192, 28);
+    // The streak meter: a flame, the live multiplier, and pips counting
+    // the serves toward the next tier — readable at a glance when shrunk.
+    const multiplier = comboMultiplier(world.combo);
+    const nextAt = comboNextAt(world.combo);
+    ctx.fillStyle = multiplier >= 3 ? '#ff7a2f' : '#f2c14e';
+    ctx.fillRect(1064, 46, 192, 28);
+    drawFlame(ctx, 1082, 61, 9);
     ctx.fillStyle = '#23262f';
-    ctx.font = 'bold 18px system-ui, sans-serif';
-    ctx.fillText(`COMBO x${world.combo}`, 1160, 62);
+    ctx.font = 'bold 17px system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`COMBO x${multiplier}`, 1096, 61);
+    if (nextAt !== null) {
+      const filled = Math.min(world.combo, nextAt);
+      for (let pip = 0; pip < nextAt; pip += 1) {
+        ctx.fillStyle = pip < filled ? '#23262f' : 'rgba(35, 38, 47, 0.35)';
+        ctx.beginPath();
+        ctx.arc(1212 + pip * 9.5, 60, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#f2c14e';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${nextAt - world.combo} more for COMBO x${comboMultiplier(nextAt)}`, 1256, 84);
+    } else {
+      ctx.fillStyle = '#ff7a2f';
+      ctx.font = 'bold 12px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('MAX COMBO — tips x3', 1256, 84);
+    }
   } else {
     ctx.fillStyle = '#b9ac93';
     ctx.font = '15px system-ui, sans-serif';
-    ctx.fillText(`Served ${world.served}  ·  Best combo x${world.bestCombo}`, 1256, 66);
+    ctx.fillText(`Served ${world.served}  ·  Best combo x${world.bestCombo}`, 1256, 60);
+    ctx.fillStyle = '#f2c14e';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillText('Serve 3 in a row for COMBO x2', 1256, 80);
   }
   // Hearts sit under the title, left of the clock.
   for (let index = 0; index < 3; index += 1) {
@@ -231,7 +275,7 @@ export function drawTitleOverlay(ctx, world) {
     'grill them on the hearth, plate the dish and ring the bell.',
     'Move: WASD / arrows or click  ·  Use: E or Space (hold to chop)',
     'Baste with B to hold a burn and earn a tip  ·  1-6 picks a crate',
-    'Serve fast: tips shrink as patience runs out. Three strikes and the day ends.',
+    'Serve fast: tips shrink as patience runs out — 3 serves in a row pays x2, 5 pays x3.',
     'Rush Hour pays +25% twice a day. Golden Hour (last 30s) pays double.',
   ], 'Press Enter or click to start cooking');
   void world;

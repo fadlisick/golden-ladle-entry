@@ -65,6 +65,7 @@ export function createSoundboard() {
       else if (event === 'cook-done') tone(880, 0.15, 'sine', 0.12, 1320);
       else if (event === 'burnt') tone(180, 0.3, 'sawtooth', 0.1, 90);
       else if (event === 'serve') { tone(660, 0.12, 'sine', 0.14); setTimeout(() => tone(990, 0.2, 'sine', 0.14), 110); }
+      else if (event === 'combo') { tone(660, 0.1, 'triangle', 0.14); setTimeout(() => tone(880, 0.1, 'triangle', 0.14), 90); setTimeout(() => tone(1320, 0.22, 'triangle', 0.14), 180); }
       else if (event === 'plate-ready') tone(740, 0.12, 'triangle', 0.12, 1100);
       else if (event === 'baste') noiseBurst(0.12, 0.1);
       else if (event === 'expire') tone(320, 0.35, 'sawtooth', 0.1, 140);

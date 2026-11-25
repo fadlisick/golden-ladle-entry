@@ -4,7 +4,7 @@
 // it stages one screenshot scene and draws exactly one frozen frame; with
 // ?selftest=1 it drives the rules headlessly and reports PASS or FAIL.
 
-import { KitchenWorld } from './kitchen.js';
+import { KitchenWorld, comboMultiplier, comboNextAt } from './kitchen.js';
 import { DISHES } from './recipes.js';
 import { renderKitchenFrame } from './render.js';
 import { drawTitleOverlay, drawPauseOverlay, drawGameOverOverlay } from './hud.js';
@@ -206,6 +206,38 @@ function runSelfTest() {
   ];
   feastWorld.refreshPlateDish();
   check('plate completes Harvest Feast', feastWorld.plate.dishId === 'harvest-feast');
+
+  // 9. Combo Streak: the 3rd serve in a row pays double, the 5th pays
+  // triple, and one expired ticket breaks the streak back to zero.
+  check('combo tiers are x1/x2/x3 at streaks 0/3/5', comboMultiplier(0) === 1 && comboMultiplier(2) === 1 && comboMultiplier(3) === 2 && comboMultiplier(4) === 2 && comboMultiplier(5) === 3 && comboMultiplier(9) === 3);
+  check('combo next tier is 3, then 5, then none', comboNextAt(0) === 3 && comboNextAt(4) === 5 && comboNextAt(5) === null);
+  const comboWorld = new KitchenWorld(16);
+  const serveEmberSurf = () => {
+    comboWorld.tickets = [{ uid: 1, dishId: 'ember-surf', patience: 45, max: 45 }];
+    comboWorld.plate.pieces = [
+      { kind: 'piece', ingredient: 'steak', state: 'cooked', basted: false },
+      { kind: 'piece', ingredient: 'fish', state: 'cooked', basted: false },
+    ];
+    comboWorld.refreshPlateDish();
+    comboWorld.chef.x = 860;
+    comboWorld.chef.y = 402;
+    comboWorld.step(0.05, { ...idle, usePressed: true });
+    comboWorld.chef.x = 1140;
+    comboWorld.chef.y = 402;
+    const before = comboWorld.score;
+    comboWorld.step(0.05, { ...idle, usePressed: true });
+    return comboWorld.score - before;
+  };
+  const firstServe = serveEmberSurf();
+  serveEmberSurf();
+  const thirdServe = serveEmberSurf();
+  check('third straight serve pays double', comboWorld.combo === 3 && thirdServe === firstServe * 2);
+  serveEmberSurf();
+  const fifthServe = serveEmberSurf();
+  check('fifth straight serve pays triple', comboWorld.combo === 5 && fifthServe === firstServe * 3);
+  comboWorld.tickets = [{ uid: 9, dishId: 'ember-steak', patience: 0.05, max: 40 }];
+  comboWorld.step(0.1, { ...idle });
+  check('expired order breaks the combo streak', comboWorld.combo === 0 && comboWorld.lost >= 1);
 
   check('no network requests were made', performance.getEntriesByType('resource').every((entry) => !entry.name.startsWith('http') || entry.name.startsWith(window.location.origin)));
   return lines;

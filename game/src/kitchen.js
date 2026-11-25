@@ -24,6 +24,23 @@ export const RUSH_HOUR_WINDOWS = [[60, 80], [120, 140]];
 export const RUSH_TIP_BONUS = 0.25;
 export const RUSH_SPAWN_SECONDS = 0.6;
 
+// Combo Streak: dishes served one after another, with no ticket walking
+// out in between, build a tip multiplier — 3 in a row pays double, 5 or
+// more pays triple. One expired ticket breaks the streak back to zero, so
+// the streak is the reason to save the ticket that is about to leave.
+export function comboMultiplier(streak) {
+  if (streak >= 5) return 3;
+  if (streak >= 3) return 2;
+  return 1;
+}
+
+/** The streak a cook must reach for the next multiplier tier, or null at the top. */
+export function comboNextAt(streak) {
+  if (streak < 3) return 3;
+  if (streak < 5) return 5;
+  return null;
+}
+
 // Station rectangles on the 1280x720 floor, and the spot the chef stands on
 // to use each one. Stations hug the back wall; the chef works the floor below.
 export const STATIONS = {
@@ -410,16 +427,25 @@ export class KitchenWorld {
       const ticket = this.tickets[ticketIndex];
       const dish = dishById(ticket.dishId);
       const tip = Math.round(dish.price * 0.5 * (ticket.patience / ticket.max)) + (plateItem.basted ? BASTE_TIP : 0);
-      const multiplier = 1 + 0.25 * Math.min(this.combo, 8);
+      const streak = this.combo + 1;
+      const multiplier = comboMultiplier(streak);
       const golden = this.goldenHour();
       const rush = this.rushHour();
       const earned = Math.round((dish.price + tip) * multiplier * (golden ? 2 : 1) * (rush ? 1 + RUSH_TIP_BONUS : 1));
       this.score += earned;
-      this.combo += 1;
+      this.combo = streak;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
       this.served += 1;
       this.passDish = { dishId: dish.id, life: 2.5 };
-      this.addFloater(1140, 240, golden ? `GOLDEN +${earned}` : rush ? `RUSH +${earned}` : `+${earned}`, '#ffd76a');
+      const comboTag = multiplier > 1 ? `COMBO x${multiplier} ` : '';
+      this.addFloater(1140, 240, golden ? `GOLDEN ${comboTag}+${earned}` : rush ? `RUSH ${comboTag}+${earned}` : `${comboTag}+${earned}`, '#ffd76a');
+      if (streak === 3) {
+        this.addFloater(640, 200, 'COMBO x2! Tips doubled — keep the streak alive!', '#ff9a5c');
+        events.push('combo');
+      } else if (streak === 5) {
+        this.addFloater(640, 200, 'COMBO x3! Tips tripled — the kitchen is on fire!', '#ff9a5c');
+        events.push('combo');
+      }
       chef.carrying.splice(chef.carrying.indexOf(plateItem), 1);
       this.tickets.splice(ticketIndex, 1);
       this.spawnIn = this.rushHour() ? RUSH_SPAWN_SECONDS : this.elapsed > 120 ? 0.8 : 1.2;
@@ -511,6 +537,9 @@ export class KitchenWorld {
     for (const ticket of expired) {
       this.tickets.splice(this.tickets.indexOf(ticket), 1);
       this.hearts -= 1;
+      if (this.combo >= 2) {
+        this.addFloater(640, 175, `Combo streak x${this.combo} broken!`, '#ff8a7a');
+      }
       this.combo = 0;
       this.lost += 1;
       this.addFloater(640, 150, `${dishById(ticket.dishId).name} walked out!`, '#ff8a7a');

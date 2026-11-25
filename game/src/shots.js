@@ -34,19 +34,21 @@ function seedEmbers(world) {
   }
 }
 
-/** The cover: mid-Rush Hour (the orange banner is up, tips +25%), combo x4,
- *  three tickets in three states — one READY (the chef carries the finished
- *  Ladle Special to the pass), one mid-assembly on the plate (Harvest Feast,
- *  the grilled fish still missing, its ghost on the plate), one new — a pan
- *  sizzling, one near burn, a dish chopping, and the last serve still on the
- *  pass under its spotlight. */
+/** The cover: mid-Rush Hour (the orange banner is up, tips +25%), combo
+ *  streak x5 paying COMBO x3 — the flame meter, its five pips and the
+ *  "MAX COMBO" line all read at a glance — three tickets in three states:
+ *  one READY (the chef carries the finished Ladle Special to the pass),
+ *  one mid-assembly on the plate (Harvest Feast, the grilled fish still
+ *  missing, its ghost on the plate), one new — a pan sizzling, one near
+ *  burn, a dish chopping, and the last serve still on the pass under its
+ *  spotlight. */
 function stageCover(world) {
   world.reset();
   world.elapsed = 130;
   world.dayLeft = 50;
   world.score = 1890;
-  world.combo = 4;
-  world.bestCombo = 4;
+  world.combo = 5;
+  world.bestCombo = 5;
   world.served = 12;
   world.tickets = [];
   setTicket(world, 0, 'ladle-special', 18, 45);
@@ -70,7 +72,7 @@ function stageCover(world) {
     basted: true,
   }];
   seedTrail(world, [[880, 560], [920, 545], [960, 532]]);
-  world.addFloater(1140, 420, '+310', '#8be28b');
+  world.addFloater(1140, 420, 'COMBO x3 +465', '#8be28b');
   seedEmbers(world);
 }
 
@@ -104,14 +106,15 @@ function stageAssembly(world) {
 }
 
 /** The serve: the chef carries a finished Golden Chowder to the pass, the
- *  ticket is stamped READY and the SERVE! prompt is lit. */
+ *  ticket is stamped READY, the SERVE! prompt is lit, and the streak sits
+ *  at five — COMBO x3 on the meter and on the serve floater. */
 function stageServe(world) {
   world.reset();
   world.elapsed = 120;
   world.dayLeft = 60;
   world.score = 1890;
-  world.combo = 4;
-  world.bestCombo = 4;
+  world.combo = 5;
+  world.bestCombo = 5;
   world.served = 12;
   world.tickets = [];
   setTicket(world, 0, 'golden-chowder', 18, 45);
@@ -129,7 +132,7 @@ function stageServe(world) {
     basted: true,
   }];
   seedTrail(world, [[1020, 520], [1060, 470], [1100, 430]]);
-  world.addFloater(1050, 450, '+310', '#8be28b');
+  world.addFloater(1050, 450, 'COMBO x3 +310', '#8be28b');
   seedEmbers(world);
 }
 
