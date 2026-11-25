@@ -146,8 +146,8 @@ function runSelfTest() {
   testWorld.step(0.2, { ...idle });
   check('day timer ends the game', testWorld.over === true && testWorld.overReason === 'day');
 
-  // 6. The menu grew, and Golden Hour doubles the serve.
-  check('menu has 10 dishes', DISHES.length === 10);
+  // 6. The menu grew to twelve, and Golden Hour doubles the serve.
+  check('menu has 12 dishes', DISHES.length === 12);
   const goldenWorld = new KitchenWorld(13);
   goldenWorld.elapsed = 155;
   goldenWorld.step(0.05, { ...idle });
@@ -168,6 +168,44 @@ function runSelfTest() {
   goldenWorld.chef.y = 402;
   goldenWorld.step(0.05, { ...idle, usePressed: true });
   check('golden hour serve pays double', goldenWorld.served === 1 && goldenWorld.score >= 700);
+
+  // 7. Rush Hour: two daily surges, faster respawns, +25% tips.
+  const rushWorld = new KitchenWorld(14);
+  rushWorld.elapsed = 65;
+  rushWorld.step(0.05, { ...idle });
+  check('rush hour runs at 65 seconds', rushWorld.rushHour());
+  rushWorld.elapsed = 100;
+  rushWorld.step(0.05, { ...idle });
+  check('rush hour is over by 100 seconds', !rushWorld.rushHour());
+  rushWorld.elapsed = 70;
+  rushWorld.tickets = [{ uid: 1, dishId: 'ladle-special', patience: 45, max: 45 }];
+  rushWorld.plate.pieces = [
+    { kind: 'piece', ingredient: 'steak', state: 'cooked', basted: false },
+    { kind: 'piece', ingredient: 'egg', state: 'cooked', basted: false },
+    { kind: 'piece', ingredient: 'tomato', state: 'chopped', basted: false },
+    { kind: 'piece', ingredient: 'herb', state: 'chopped', basted: false },
+  ];
+  rushWorld.refreshPlateDish();
+  rushWorld.chef.x = 860;
+  rushWorld.chef.y = 402;
+  rushWorld.step(0.05, { ...idle, usePressed: true });
+  rushWorld.chef.x = 1140;
+  rushWorld.chef.y = 402;
+  rushWorld.step(0.05, { ...idle, usePressed: true });
+  // Serve sets the rush respawn (0.6s); the same step's ticket aging ticks
+  // it down once, so it reads just under 0.6 here.
+  check('rush hour serve pays +25% and respawns fast', rushWorld.served === 1 && rushWorld.score >= 450 && rushWorld.spawnIn <= 0.6);
+
+  // 8. The new Harvest Feast plates from its four finished pieces.
+  const feastWorld = new KitchenWorld(15);
+  feastWorld.plate.pieces = [
+    { kind: 'piece', ingredient: 'tomato', state: 'chopped', basted: false },
+    { kind: 'piece', ingredient: 'mushroom', state: 'chopped', basted: false },
+    { kind: 'piece', ingredient: 'egg', state: 'cooked', basted: false },
+    { kind: 'piece', ingredient: 'fish', state: 'cooked', basted: false },
+  ];
+  feastWorld.refreshPlateDish();
+  check('plate completes Harvest Feast', feastWorld.plate.dishId === 'harvest-feast');
 
   check('no network requests were made', performance.getEntriesByType('resource').every((entry) => !entry.name.startsWith('http') || entry.name.startsWith(window.location.origin)));
   return lines;

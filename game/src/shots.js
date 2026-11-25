@@ -34,22 +34,23 @@ function seedEmbers(world) {
   }
 }
 
-/** The cover: mid-rush, combo x4, three tickets in three states — one
- *  READY (the chef carries the finished Ladle Special to the pass), one
- *  mid-assembly on the plate (Surf & Turf, herb still missing), one new —
- *  a pan sizzling, one near burn, a dish chopping, and the last serve still
- *  on the pass under its spotlight. */
+/** The cover: mid-Rush Hour (the orange banner is up, tips +25%), combo x4,
+ *  three tickets in three states — one READY (the chef carries the finished
+ *  Ladle Special to the pass), one mid-assembly on the plate (Harvest Feast,
+ *  the grilled fish still missing, its ghost on the plate), one new — a pan
+ *  sizzling, one near burn, a dish chopping, and the last serve still on the
+ *  pass under its spotlight. */
 function stageCover(world) {
   world.reset();
-  world.elapsed = 120;
-  world.dayLeft = 60;
+  world.elapsed = 130;
+  world.dayLeft = 50;
   world.score = 1890;
   world.combo = 4;
   world.bestCombo = 4;
   world.served = 12;
   world.tickets = [];
   setTicket(world, 0, 'ladle-special', 18, 45);
-  setTicket(world, 1, 'surf-turf', 22, 45);
+  setTicket(world, 1, 'harvest-feast', 22, 45);
   setTicket(world, 2, 'garden-salad', 48, 55);
   world.board.piece = rawPiece('tomato');
   world.board.progress = 0.6;
@@ -57,7 +58,7 @@ function stageCover(world) {
   world.burners[0].progress = 0.55;
   world.burners[1].piece = donePiece('fish', 'cooked');
   world.burners[1].burn = 4.2;
-  world.plate.pieces = [donePiece('steak', 'cooked'), donePiece('fish', 'cooked')];
+  world.plate.pieces = [donePiece('tomato', 'chopped'), donePiece('mushroom', 'chopped'), donePiece('egg', 'cooked')];
   world.passDish = { dishId: 'golden-catch', life: 2.5 };
   world.chef.x = 1000;
   world.chef.y = 520;
@@ -73,8 +74,10 @@ function stageCover(world) {
   seedEmbers(world);
 }
 
-/** Mid-assembly: a chopped mushroom waits on the board, an egg fries, and
- *  the plate is two thirds of a Hearth Brunch with the herb still missing. */
+/** Mid-assembly: Ember Surf, the new two-grill dish — a steak rests cooked
+ *  on one pan, a fish grills on the other, and the plate holds the steak
+ *  while its ghost waits for the fish. A tomato chops on the board for the
+ *  Hearth Brunch ticket behind it. */
 function stageAssembly(world) {
   world.reset();
   world.elapsed = 45;
@@ -84,17 +87,19 @@ function stageAssembly(world) {
   world.bestCombo = 2;
   world.served = 3;
   world.tickets = [];
-  setTicket(world, 0, 'hearth-brunch', 30, 45);
-  setTicket(world, 1, 'ember-steak', 40, 50);
+  setTicket(world, 0, 'ember-surf', 30, 45);
+  setTicket(world, 1, 'hearth-brunch', 40, 50);
   setTicket(world, 2, 'garden-salad', 48, 55);
-  world.board.piece = donePiece('mushroom', 'chopped');
-  world.burners[0].piece = rawPiece('egg');
-  world.burners[0].progress = 0.7;
-  world.plate.pieces = [donePiece('egg', 'cooked'), donePiece('tomato', 'chopped')];
-  world.chef.x = 168;
-  world.chef.y = 480;
+  world.board.piece = rawPiece('tomato');
+  world.board.progress = 0.5;
+  world.burners[0].piece = donePiece('steak', 'cooked');
+  world.burners[1].piece = rawPiece('fish');
+  world.burners[1].progress = 0.7;
+  world.plate.pieces = [donePiece('steak', 'cooked')];
+  world.chef.x = 516;
+  world.chef.y = 560;
   world.chef.dir = 1;
-  seedTrail(world, [[120, 560], [140, 530], [156, 505]]);
+  seedTrail(world, [[430, 600], [460, 585], [490, 572]]);
   seedEmbers(world);
 }
 
@@ -129,7 +134,8 @@ function stageServe(world) {
 }
 
 /** The rush: twenty seconds left, one heart, three tickets bleeding out,
- *  a pan about to burn and the board still chopping. */
+ *  a pan about to burn and the board still chopping. The top ticket is the
+ *  big Harvest Feast, two of its four pieces already on the plate. */
 function stageRush(world) {
   world.reset();
   world.elapsed = 160;
@@ -140,7 +146,7 @@ function stageRush(world) {
   world.served = 15;
   world.hearts = 1;
   world.tickets = [];
-  setTicket(world, 0, 'surf-turf', 8, 40);
+  setTicket(world, 0, 'harvest-feast', 8, 40);
   setTicket(world, 1, 'ladle-special', 12, 45);
   setTicket(world, 2, 'ember-steak', 6, 38);
   world.board.piece = rawPiece('herb');
@@ -149,7 +155,7 @@ function stageRush(world) {
   world.burners[0].burn = 4.5;
   world.burners[1].piece = rawPiece('fish');
   world.burners[1].progress = 0.8;
-  world.plate.pieces = [donePiece('steak', 'cooked'), donePiece('herb', 'chopped')];
+  world.plate.pieces = [donePiece('tomato', 'chopped'), donePiece('mushroom', 'chopped')];
   world.chef.x = 516;
   world.chef.y = 560;
   world.chef.dir = 1;

@@ -72,6 +72,7 @@ export function drawTopBar(ctx, world) {
   // Day clock, centre, big enough to feel.
   const lowTime = world.dayLeft <= 30;
   const golden = world.goldenHour();
+  const rush = world.rushHour();
   ctx.textAlign = 'center';
   ctx.fillStyle = lowTime && Math.floor(world.elapsed * 2) % 2 === 0 ? '#ff8a7a' : '#ffe9a8';
   ctx.font = 'bold 56px system-ui, sans-serif';
@@ -80,6 +81,10 @@ export function drawTopBar(ctx, world) {
     ctx.fillStyle = '#f2c14e';
     ctx.font = 'bold 15px system-ui, sans-serif';
     ctx.fillText('★ GOLDEN HOUR · TIPS x2 ★', 640, 78);
+  } else if (rush) {
+    ctx.fillStyle = '#ff9a5c';
+    ctx.font = 'bold 15px system-ui, sans-serif';
+    ctx.fillText('⚡ RUSH HOUR · TIPS +25% ⚡', 640, 78);
   } else {
     ctx.fillStyle = '#b9ac93';
     ctx.font = '13px system-ui, sans-serif';
@@ -89,7 +94,7 @@ export function drawTopBar(ctx, world) {
   const dayFraction = Math.max(0, world.dayLeft / 180);
   ctx.fillStyle = '#3a3f4d';
   ctx.fillRect(0, 88, 1280, 6);
-  ctx.fillStyle = golden ? '#f2c14e' : lowTime ? '#e2543e' : '#58b368';
+  ctx.fillStyle = golden ? '#f2c14e' : rush ? '#ff9a5c' : lowTime ? '#e2543e' : '#58b368';
   ctx.fillRect(0, 88, 1280 * dayFraction, 6);
 
   // Score, combo and hearts, right.
@@ -172,8 +177,10 @@ export function drawOrderBoard(ctx, world) {
     ctx.fillRect(x + 12, CARD_Y + CARD_H - 14, CARD_W - 24, 8);
     ctx.fillStyle = patienceColor(fraction);
     ctx.fillRect(x + 12, CARD_Y + CARD_H - 14, (CARD_W - 24) * fraction, 8);
-    ctx.fillStyle = '#8a7a5c';
-    ctx.font = 'bold 14px system-ui, sans-serif';
+    // Patience left, big and coloured to match its bar: the number a cook
+    // checks first when deciding which ticket to save.
+    ctx.fillStyle = patienceColor(fraction);
+    ctx.font = 'bold 16px system-ui, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`${Math.ceil(ticket.patience)}s`, x + CARD_W - 12, CARD_Y + CARD_H - 18);
   });
@@ -225,7 +232,7 @@ export function drawTitleOverlay(ctx, world) {
     'Move: WASD / arrows or click  ·  Use: E or Space (hold to chop)',
     'Baste with B to hold a burn and earn a tip  ·  1-6 picks a crate',
     'Serve fast: tips shrink as patience runs out. Three strikes and the day ends.',
-    'Last 30 seconds are Golden Hour: every tip pays double.',
+    'Rush Hour pays +25% twice a day. Golden Hour (last 30s) pays double.',
   ], 'Press Enter or click to start cooking');
   void world;
 }

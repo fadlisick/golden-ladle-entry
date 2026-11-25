@@ -18,6 +18,11 @@ export const BURN_GRACE_SECONDS = 5;
 export const BASTE_EXTRA_SECONDS = 4;
 export const BASTE_TIP = 15;
 export const GOLDEN_HOUR_SECONDS = 30;
+// Rush Hour: two 20-second surges when the dining room floods. Orders come
+// faster and every tip pays +25%, so the day has two peaks to play around.
+export const RUSH_HOUR_WINDOWS = [[60, 80], [120, 140]];
+export const RUSH_TIP_BONUS = 0.25;
+export const RUSH_SPAWN_SECONDS = 0.6;
 
 // Station rectangles on the 1280x720 floor, and the spot the chef stands on
 // to use each one. Stations hug the back wall; the chef works the floor below.
@@ -85,6 +90,7 @@ export class KitchenWorld {
     this.plate = { pieces: [], dishId: null };
     this.passDish = null;
     this.selectedPantry = 0;
+    this.inRush = false;
     this.trailClock = 0;
     this.particleClock = 0;
     for (let index = 0; index < MAX_TICKETS; index += 1) this.dealTicket();
@@ -107,6 +113,15 @@ export class KitchenWorld {
   /** The last 30 seconds of the day: every tip is doubled. */
   goldenHour() {
     return !this.over && this.dayLeft <= GOLDEN_HOUR_SECONDS;
+  }
+
+  /** True while the dining room floods: orders arrive faster, tips pay +25%. */
+  rushHour() {
+    if (this.over) return false;
+    for (const [start, end] of RUSH_HOUR_WINDOWS) {
+      if (this.elapsed >= start && this.elapsed < end) return true;
+    }
+    return false;
   }
 
   plateComponentKeys() {
@@ -205,6 +220,14 @@ export class KitchenWorld {
       events.push('game-over');
       return events;
     }
+
+    // Rush Hour arrives with a shout the first frame it starts.
+    const rushing = this.rushHour();
+    if (rushing && !this.inRush) {
+      this.addFloater(640, 200, 'RUSH HOUR! Tips +25%', '#ffd76a');
+      events.push('rush');
+    }
+    this.inRush = rushing;
 
     if (typeof keys.pantry === 'number') this.selectedPantry = keys.pantry;
 
@@ -389,16 +412,17 @@ export class KitchenWorld {
       const tip = Math.round(dish.price * 0.5 * (ticket.patience / ticket.max)) + (plateItem.basted ? BASTE_TIP : 0);
       const multiplier = 1 + 0.25 * Math.min(this.combo, 8);
       const golden = this.goldenHour();
-      const earned = Math.round((dish.price + tip) * multiplier * (golden ? 2 : 1));
+      const rush = this.rushHour();
+      const earned = Math.round((dish.price + tip) * multiplier * (golden ? 2 : 1) * (rush ? 1 + RUSH_TIP_BONUS : 1));
       this.score += earned;
       this.combo += 1;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
       this.served += 1;
       this.passDish = { dishId: dish.id, life: 2.5 };
-      this.addFloater(1140, 240, golden ? `GOLDEN +${earned}` : `+${earned}`, '#ffd76a');
+      this.addFloater(1140, 240, golden ? `GOLDEN +${earned}` : rush ? `RUSH +${earned}` : `+${earned}`, '#ffd76a');
       chef.carrying.splice(chef.carrying.indexOf(plateItem), 1);
       this.tickets.splice(ticketIndex, 1);
-      this.spawnIn = this.elapsed > 120 ? 0.8 : 1.2;
+      this.spawnIn = this.rushHour() ? RUSH_SPAWN_SECONDS : this.elapsed > 120 ? 0.8 : 1.2;
       return ['serve'];
     }
     if (station === 'trash') {
@@ -503,7 +527,7 @@ export class KitchenWorld {
       this.spawnIn -= dt;
       if (this.spawnIn <= 0) {
         this.dealTicket();
-        this.spawnIn = this.elapsed > 120 ? 0.9 : 1.5;
+        this.spawnIn = this.rushHour() ? RUSH_SPAWN_SECONDS : this.elapsed > 120 ? 0.9 : 1.5;
       }
     }
   }

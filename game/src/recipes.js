@@ -1,6 +1,8 @@
 // The pantry and the menu of Golden Ladle: what each ingredient needs before it
 // can go on a plate, and which combinations of finished pieces make a dish.
 // A component is written as "<ingredient>:<finish>", e.g. "steak:cooked".
+// Twelve dishes now: the two new ones are Ember Surf (both grill items, fast
+// to fire) and Harvest Feast (the big four-need plate for the late rush).
 
 export const INGREDIENTS = [
   { id: 'tomato', name: 'Tomato', color: '#e2543e', dark: '#a83226', process: 'chop', workSeconds: 1.2, hint: 'Chop' },
@@ -22,6 +24,8 @@ export const DISHES = [
   { id: 'fishermans-plate', name: "Fisherman's Plate", price: 170, needs: ['fish:cooked', 'egg:cooked', 'herb:chopped'] },
   { id: 'hearth-brunch', name: 'Hearth Brunch', price: 160, needs: ['egg:cooked', 'tomato:chopped', 'herb:chopped'] },
   { id: 'golden-chowder', name: 'Golden Chowder', price: 180, needs: ['fish:cooked', 'mushroom:chopped', 'egg:cooked'] },
+  { id: 'ember-surf', name: 'Ember Surf', price: 170, needs: ['steak:cooked', 'fish:cooked'] },
+  { id: 'harvest-feast', name: 'Harvest Feast', price: 210, needs: ['tomato:chopped', 'mushroom:chopped', 'egg:cooked', 'fish:cooked'] },
 ];
 
 export function ingredientById(id) {
