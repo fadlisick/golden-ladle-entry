@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/best-cooking-game-20261125-0137/fadlisick/golden-ladle-entry/rank.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
 [![reward](https://make.fun/badge/best-cooking-game-20261125-0137/fadlisick/golden-ladle-entry/reward.svg)](https://make.fun/bounty/best-cooking-game-20261125-0137?utm_source=github&utm_medium=readme&utm_campaign=best-cooking-game-20261125-0137)
 
-A complete timed cooking game: run a warm hearth kitchen, work the order board, and serve dishes before their patience runs out. Grab ingredients from the pantry, chop them on the board, grill them on the hearth, plate the dish, and ring the bell at the serve pass. Baste with the golden ladle to hold a burn off and earn a tip.
+A complete timed cooking game: run a warm hearth kitchen, work the order board, and serve dishes before their patience runs out. Grab ingredients from the pantry, chop them on the board, grill them on the hearth, plate the dish, and ring the bell at the serve pass. Baste with the golden ladle to hold a burn off and earn a tip. Ten dishes on the menu, and the last 30 seconds of the day are Golden Hour: every tip pays double.
 
 ## Play it
 

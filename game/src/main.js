@@ -5,6 +5,7 @@
 // ?selftest=1 it drives the rules headlessly and reports PASS or FAIL.
 
 import { KitchenWorld } from './kitchen.js';
+import { DISHES } from './recipes.js';
 import { renderKitchenFrame } from './render.js';
 import { drawTitleOverlay, drawPauseOverlay, drawGameOverOverlay } from './hud.js';
 import { createInput } from './input.js';
@@ -144,6 +145,30 @@ function runSelfTest() {
   testWorld.elapsed = 179.9;
   testWorld.step(0.2, { ...idle });
   check('day timer ends the game', testWorld.over === true && testWorld.overReason === 'day');
+
+  // 6. The menu grew, and Golden Hour doubles the serve.
+  check('menu has 10 dishes', DISHES.length === 10);
+  const goldenWorld = new KitchenWorld(13);
+  goldenWorld.elapsed = 155;
+  goldenWorld.step(0.05, { ...idle });
+  check('golden hour in the last 30 seconds', goldenWorld.dayLeft <= 30 && goldenWorld.goldenHour());
+  goldenWorld.tickets = [{ uid: 1, dishId: 'ladle-special', patience: 45, max: 45 }];
+  goldenWorld.plate.pieces = [
+    { kind: 'piece', ingredient: 'steak', state: 'cooked', basted: false },
+    { kind: 'piece', ingredient: 'egg', state: 'cooked', basted: false },
+    { kind: 'piece', ingredient: 'tomato', state: 'chopped', basted: false },
+    { kind: 'piece', ingredient: 'herb', state: 'chopped', basted: false },
+  ];
+  goldenWorld.refreshPlateDish();
+  check('plate completes Ladle Special', goldenWorld.plate.dishId === 'ladle-special');
+  goldenWorld.chef.x = 860;
+  goldenWorld.chef.y = 402;
+  goldenWorld.step(0.05, { ...idle, usePressed: true });
+  goldenWorld.chef.x = 1140;
+  goldenWorld.chef.y = 402;
+  goldenWorld.step(0.05, { ...idle, usePressed: true });
+  check('golden hour serve pays double', goldenWorld.served === 1 && goldenWorld.score >= 700);
+
   check('no network requests were made', performance.getEntriesByType('resource').every((entry) => !entry.name.startsWith('http') || entry.name.startsWith(window.location.origin)));
   return lines;
 }

@@ -17,6 +17,7 @@ export const INTERACT_RANGE = 100;
 export const BURN_GRACE_SECONDS = 5;
 export const BASTE_EXTRA_SECONDS = 4;
 export const BASTE_TIP = 15;
+export const GOLDEN_HOUR_SECONDS = 30;
 
 // Station rectangles on the 1280x720 floor, and the spot the chef stands on
 // to use each one. Stations hug the back wall; the chef works the floor below.
@@ -89,14 +90,23 @@ export class KitchenWorld {
     for (let index = 0; index < MAX_TICKETS; index += 1) this.dealTicket();
   }
 
-  /** Deal one new order ticket; early in the day the menu stays simple. */
+  /** Deal one new order ticket; early in the day the menu stays simple,
+   *  late in the day the big four-need dishes show up more often. */
   dealTicket() {
     const simple = DISHES.filter((dish) => dish.needs.length === 2);
-    const pool = this.elapsed < 60 && this.random() < 0.6 ? simple : DISHES;
+    const big = DISHES.filter((dish) => dish.needs.length === 4);
+    let pool = DISHES;
+    if (this.elapsed < 60 && this.random() < 0.6) pool = simple;
+    else if (this.elapsed >= 90 && this.random() < 0.35) pool = big;
     const dish = pickFrom(this.random, pool);
-    const patience = Math.round(55 - Math.min(20, (this.elapsed / DAY_SECONDS) * 20));
+    const patience = Math.round(55 - Math.min(25, (this.elapsed / DAY_SECONDS) * 25));
     this.tickets.push({ uid: this.nextTicketUid, dishId: dish.id, patience, max: patience });
     this.nextTicketUid += 1;
+  }
+
+  /** The last 30 seconds of the day: every tip is doubled. */
+  goldenHour() {
+    return !this.over && this.dayLeft <= GOLDEN_HOUR_SECONDS;
   }
 
   plateComponentKeys() {
@@ -378,16 +388,17 @@ export class KitchenWorld {
       const dish = dishById(ticket.dishId);
       const tip = Math.round(dish.price * 0.5 * (ticket.patience / ticket.max)) + (plateItem.basted ? BASTE_TIP : 0);
       const multiplier = 1 + 0.25 * Math.min(this.combo, 8);
-      const earned = Math.round((dish.price + tip) * multiplier);
+      const golden = this.goldenHour();
+      const earned = Math.round((dish.price + tip) * multiplier * (golden ? 2 : 1));
       this.score += earned;
       this.combo += 1;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
       this.served += 1;
       this.passDish = { dishId: dish.id, life: 2.5 };
-      this.addFloater(1140, 240, `+${earned}`, '#8be28b');
+      this.addFloater(1140, 240, golden ? `GOLDEN +${earned}` : `+${earned}`, '#ffd76a');
       chef.carrying.splice(chef.carrying.indexOf(plateItem), 1);
       this.tickets.splice(ticketIndex, 1);
-      this.spawnIn = 1.2;
+      this.spawnIn = this.elapsed > 120 ? 0.8 : 1.2;
       return ['serve'];
     }
     if (station === 'trash') {
@@ -492,7 +503,7 @@ export class KitchenWorld {
       this.spawnIn -= dt;
       if (this.spawnIn <= 0) {
         this.dealTicket();
-        this.spawnIn = 1.5;
+        this.spawnIn = this.elapsed > 120 ? 0.9 : 1.5;
       }
     }
   }

@@ -372,7 +372,7 @@ function drawServePass(ctx, world) {
   ctx.arc(1200, 246, 4, 0, Math.PI * 2);
   ctx.fill();
   if (carryingPlate) {
-    const pulse = 0.6 + 0.4 * Math.sin(world.elapsed * 6);
+    const pulse = 0.8 + 0.2 * Math.sin(world.elapsed * 6);
     ctx.save();
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#a87608';

@@ -20,6 +20,8 @@ export const DISHES = [
   { id: 'ladle-special', name: 'Ladle Special', price: 240, needs: ['steak:cooked', 'egg:cooked', 'tomato:chopped', 'herb:chopped'] },
   { id: 'mushroom-skillet', name: 'Mushroom Skillet', price: 150, needs: ['mushroom:chopped', 'egg:cooked', 'tomato:chopped'] },
   { id: 'fishermans-plate', name: "Fisherman's Plate", price: 170, needs: ['fish:cooked', 'egg:cooked', 'herb:chopped'] },
+  { id: 'hearth-brunch', name: 'Hearth Brunch', price: 160, needs: ['egg:cooked', 'tomato:chopped', 'herb:chopped'] },
+  { id: 'golden-chowder', name: 'Golden Chowder', price: 180, needs: ['fish:cooked', 'mushroom:chopped', 'egg:cooked'] },
 ];
 
 export function ingredientById(id) {
